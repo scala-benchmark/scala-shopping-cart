@@ -69,10 +69,9 @@ class OrderRepositorySpec extends PostgresRepositorySpec {
           orders <- r.findBy(uid).compile.toList
         } yield (orders, uid)
 
-        result.asserting {
-          case (orders, uid) =>
-            orders must not be empty
-            orders.map(_.userId) must contain only uid
+        result.asserting { case (orders, uid) =>
+          orders must not be empty
+          orders.map(_.userId) must contain only uid
         }
       }
 

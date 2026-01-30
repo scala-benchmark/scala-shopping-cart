@@ -53,7 +53,7 @@ final class ItemController[F[_]: Sync: Logger](itemService: ItemService[F]) exte
     case adminReq @ POST -> Root as _ =>
       withErrorHandling {
         for {
-          r <- adminReq.req.as[ItemCreateRequest]
+          r   <- adminReq.req.as[ItemCreateRequest]
           id  <- itemService.create(r.toDomain)
           res <- Created(ItemCreateResponse(id))
         } yield res

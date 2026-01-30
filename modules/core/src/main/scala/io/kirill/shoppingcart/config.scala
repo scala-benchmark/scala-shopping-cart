@@ -5,7 +5,7 @@ import cats.effect.{Blocker, ContextShift, Sync}
 import scala.concurrent.duration.FiniteDuration
 import pureconfig._
 import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
+import pureconfig.module.catseffect2.syntax._
 
 object config {
 

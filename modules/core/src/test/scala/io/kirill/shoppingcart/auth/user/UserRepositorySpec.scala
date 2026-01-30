@@ -17,11 +17,10 @@ class UserRepositorySpec extends PostgresRepositorySpec {
         user <- r.findByName(User.Name("boris"))
       } yield (uid, user.get)
 
-      result.asserting {
-        case (uid, user) =>
-          user.id must be(uid)
-          user.name must be(User.Name("boris"))
-          user.password must be(Some(User.PasswordHash("password")))
+      result.asserting { case (uid, user) =>
+        user.id must be(uid)
+        user.name must be(User.Name("boris"))
+        user.password must be(Some(User.PasswordHash("password")))
       }
     }
 

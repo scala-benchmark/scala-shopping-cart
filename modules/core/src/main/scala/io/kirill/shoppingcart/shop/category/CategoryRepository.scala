@@ -33,8 +33,8 @@ final private class PostgresCategoryRepository[F[_]: Sync](
 
 object CategoryRepository {
   private[category] val codec: Codec[Category] =
-    (uuid ~ varchar).imap {
-      case i ~ n => Category(Category.Id(i), Category.Name(n))
+    (uuid ~ varchar).imap { case i ~ n =>
+      Category(Category.Id(i), Category.Name(n))
     }(b => (b.id.value, b.name.value))
 
   private[category] val selectAll: Query[Void, Category] =

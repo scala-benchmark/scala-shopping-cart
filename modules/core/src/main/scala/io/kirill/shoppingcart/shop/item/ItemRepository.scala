@@ -54,16 +54,15 @@ final private class PostgresItemRepository[F[_]: Sync](val sessionPool: Resource
 
 object ItemRepository {
   private[item] val decoder: Decoder[Item] =
-    (uuid ~ varchar ~ varchar ~ numeric ~ uuid ~ varchar ~ uuid ~ varchar).map {
-      case i ~ n ~ d ~ p ~ bi ~ bn ~ ci ~ cn =>
-        Item(
-          Item.Id(i),
-          Item.Name(n),
-          Item.Description(d),
-          GBP(p),
-          Brand(Brand.Id(bi), Brand.Name(bn)),
-          Category(Category.Id(ci), Category.Name(cn))
-        )
+    (uuid ~ varchar ~ varchar ~ numeric ~ uuid ~ varchar ~ uuid ~ varchar).map { case i ~ n ~ d ~ p ~ bi ~ bn ~ ci ~ cn =>
+      Item(
+        Item.Id(i),
+        Item.Name(n),
+        Item.Description(d),
+        GBP(p),
+        Brand(Brand.Id(bi), Brand.Name(bn)),
+        Category(Category.Id(ci), Category.Name(cn))
+      )
     }
 
   private[item] val existsBy: Query[UUID, Long] =
@@ -103,8 +102,8 @@ object ItemRepository {
     sql"""
          INSERT INTO items
          VALUES ($uuid, $varchar, $varchar, $numeric, $uuid, $uuid)
-         """.command.contramap {
-      case id ~ i => id.value ~ i.name.value ~ i.description.value ~ i.price.amount ~ i.brandId.value ~ i.categoryId.value
+         """.command.contramap { case id ~ i =>
+      id.value ~ i.name.value ~ i.description.value ~ i.price.amount ~ i.brandId.value ~ i.categoryId.value
     }
 
   private[item] val updatePrice: Command[UpdateItem] =

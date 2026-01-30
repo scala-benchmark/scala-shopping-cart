@@ -18,11 +18,10 @@ final class HealthCheckController[F[_]: Sync: Logger](
   private val prefixPath = "/health"
 
   private val httpRoutes: HttpRoutes[F] =
-    HttpRoutes.of {
-      case GET -> Root / "status" =>
-        withErrorHandling {
-          Ok(healthCheckService.status.map(HealthCheckResponse.from))
-        }
+    HttpRoutes.of { case GET -> Root / "status" =>
+      withErrorHandling {
+        Ok(healthCheckService.status.map(HealthCheckResponse.from))
+      }
     }
 
   val routes: HttpRoutes[F] = Router(

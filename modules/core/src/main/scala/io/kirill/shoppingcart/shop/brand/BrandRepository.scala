@@ -33,8 +33,8 @@ final private class PostgresBrandRepository[F[_]: Sync](
 
 object BrandRepository {
   private[brand] val codec: Codec[Brand] =
-    (uuid ~ varchar).imap {
-      case i ~ n => Brand(Brand.Id(i), Brand.Name(n))
+    (uuid ~ varchar).imap { case i ~ n =>
+      Brand(Brand.Id(i), Brand.Name(n))
     }(b => (b.id.value, b.name.value))
 
   private[brand] val selectAll: Query[Void, Brand] =

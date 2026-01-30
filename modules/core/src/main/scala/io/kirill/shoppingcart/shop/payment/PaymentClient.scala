@@ -4,6 +4,7 @@ import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import io.circe.generic.auto._
+import io.circe.refined._
 import io.kirill.shoppingcart.common.errors.PaymentError
 import io.kirill.shoppingcart.common.web.JsonCodecs
 import io.kirill.shoppingcart.config.PaymentConfig

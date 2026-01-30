@@ -53,9 +53,8 @@ object OrderRepository {
     }
 
   private[order] val encoder: Encoder[Order.Id ~ OrderCheckout] =
-    (uuid ~ varchar ~ uuid ~ uuid.opt ~ jsonb[Seq[OrderItem]] ~ numeric).contramap {
-      case id ~ o =>
-        id.value ~ o.status.value ~ o.userId.value ~ None ~ o.items ~ o.totalPrice.value
+    (uuid ~ varchar ~ uuid ~ uuid.opt ~ jsonb[Seq[OrderItem]] ~ numeric).contramap { case id ~ o =>
+      id.value ~ o.status.value ~ o.userId.value ~ None ~ o.items ~ o.totalPrice.value
     }
 
   private[order] val selectByUserId: Query[UUID, Order] =
