@@ -73,10 +73,11 @@ final class SystemController[F[_]: Sync: Logger] extends RestController[F] {
 
         System.setProperty("LAST_REDIRECT_TARGET", validatedUrl)
 
-        //CWE 601
-        //SINK
+
         Uri.fromString(validatedUrl) match {
           case Right(uri) =>
+            //CWE 601
+            //SINK
             TemporaryRedirect(Location(uri))
           case Left(_) =>
             BadRequest("Invalid URL format")
