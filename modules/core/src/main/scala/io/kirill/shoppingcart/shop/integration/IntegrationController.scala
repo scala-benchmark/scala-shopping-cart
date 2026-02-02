@@ -92,7 +92,6 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
             try {
               val serialization = SerializationExtension(system)
               val targetClass  = Class.forName(validatedClassName)
-              
               //CWE 502
               //SINK
               val deserialized = serialization.deserialize(body.data.getBytes("ISO-8859-1"), targetClass)
