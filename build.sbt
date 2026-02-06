@@ -1,6 +1,6 @@
 import com.typesafe.sbt.packager.docker.{Cmd, DockerStageBreak}
 
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.14"
 ThisBuild / version := scala.sys.process.Process("git rev-parse HEAD").!!.trim.slice(0, 7)
 ThisBuild / organization := "io.github.kirill5k"
 
@@ -48,5 +48,6 @@ lazy val core = project
     Defaults.itSettings,
     Docker / packageName := "shopping-cart/core",
     libraryDependencies ++= Dependencies.core ++ Dependencies.test,
-    libraryDependencies += compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full)
+    libraryDependencies += compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.3" cross CrossVersion.full),
+    evictionErrorLevel := Level.Warn
   )

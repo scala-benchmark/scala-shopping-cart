@@ -35,8 +35,8 @@ final private class LiveUserRepository[F[_]: Sync](
 object UserRepository {
 
   private val codec: Codec[User] =
-    (uuid ~ varchar ~ varchar.opt).imap {
-      case i ~ n ~ p => User(User.Id(i), User.Name(n), p.map(User.PasswordHash.apply))
+    (uuid ~ varchar ~ varchar.opt).imap { case i ~ n ~ p =>
+      User(User.Id(i), User.Name(n), p.map(User.PasswordHash.apply))
     }(u => u.id.value ~ u.name.value ~ u.password.map(_.value))
 
   val selectByName: Query[String, User] =

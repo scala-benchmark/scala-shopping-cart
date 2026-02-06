@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   object Versions {
-    val pureConfig    = "0.14.1"
+    val pureConfig    = "0.17.8"
     val circe         = "0.13.0"
     val http4s        = "0.21.22"
     val mockito       = "1.16.37"
@@ -15,6 +15,9 @@ object Dependencies {
     val log4cats      = "1.3.0"
     val http4sJwtAuth = "0.0.6"
     val bcrypt        = "4.3.0"
+    val betterFiles   = "3.9.2"
+    val scalikejdbc   = "3.5.0"
+    val akka          = "2.6.20"
 
     val scalaCheck     = "1.15.3"
     val scalaTest      = "3.2.8"
@@ -35,7 +38,7 @@ object Dependencies {
     val catsTestkit = "org.typelevel"    %% "cats-testkit-scalatest" % "1.0.1"
 
     val pureConfigCore = pureConfig("pureconfig")
-    val pureConfigCats = pureConfig("pureconfig-cats-effect")
+    val pureConfigCats = "com.github.pureconfig" %% "pureconfig-cats-effect2" % "0.17.8"
 
     val skunkCore  = skunk("skunk-core")
     val skunkCirce = skunk("skunk-circe")
@@ -67,6 +70,12 @@ object Dependencies {
     val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
     val squants  = "org.typelevel" %% "squants"         % Versions.squants
 
+    val betterFiles    = "com.github.pathikrit" %% "better-files"       % Versions.betterFiles
+    val scalikejdbc    = "org.scalikejdbc"      %% "scalikejdbc"        % Versions.scalikejdbc
+    val akkaActor      = "com.typesafe.akka"    %% "akka-actor"         % Versions.akka
+    val unboundidLdap  = "com.unboundid"        %  "unboundid-ldapsdk"  % "6.0.8"
+    val h2Database     = "com.h2database"       %  "h2"                 % "2.2.224"
+
     val scalaCheck    = "org.scalacheck"    %% "scalacheck"      % Versions.scalaCheck
     val scalaTest     = "org.scalatest"     %% "scalatest"       % Versions.scalaTest
     val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % Versions.scalaTestPlus
@@ -76,9 +85,12 @@ object Dependencies {
     val mockitoScalatest = mockito("mockito-scala-scalatest")
     val redisEmbedded    = "com.github.sebruck" %% "scalatest-embedded-redis"      % "0.4.0"
 
-    val postgresDriver          = "postgresql" % "postgresql" % "9.1-901.jdbc4"
+    val postgresDriver          = "org.postgresql" % "postgresql" % "42.6.0"
     val testContainersScalatest = testContainers("testcontainers-scala-scalatest")
     val testContainersPostgres  = testContainers("testcontainers-scala-postgresql")
+
+    val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.13.14"
+    val scalaReflect  = "org.scala-lang" % "scala-reflect"  % "2.13.14"
   }
 
   lazy val core: Seq[ModuleID] = Seq(
@@ -107,7 +119,15 @@ object Dependencies {
     Libraries.refinedCats,
     Libraries.newtype,
     Libraries.skunkCore,
-    Libraries.skunkCirce
+    Libraries.skunkCirce,
+    Libraries.betterFiles,
+    Libraries.scalikejdbc,
+    Libraries.akkaActor,
+    Libraries.unboundidLdap,
+    Libraries.h2Database,
+    Libraries.postgresDriver,
+    Libraries.scalaCompiler,
+    Libraries.scalaReflect
   )
 
   lazy val test: Seq[ModuleID] = Seq(

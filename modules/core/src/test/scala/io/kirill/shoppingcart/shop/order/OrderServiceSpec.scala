@@ -25,7 +25,7 @@ class OrderServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSuga
           order   <- service.get(userId, order1.id)
         } yield order
 
-        result.unsafeToFuture().map(_ mustBe (order1))
+        result.unsafeToFuture().map(_ mustBe order1)
       }
 
       "should return order not found error if not found" in {

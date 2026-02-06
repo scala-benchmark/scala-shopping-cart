@@ -17,8 +17,8 @@ final private class LiveCategoryService[F[_]: Sync](
     categoryRepository.findAll
 
   override def create(name: Category.Name): F[Category.Id] =
-    categoryRepository.create(name).handleErrorWith {
-      case UniqueViolation(_) => Sync[F].raiseError(CategoryAlreadyExists(name))
+    categoryRepository.create(name).handleErrorWith { case UniqueViolation(_) =>
+      Sync[F].raiseError(CategoryAlreadyExists(name))
     }
 }
 

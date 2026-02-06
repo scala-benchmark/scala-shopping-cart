@@ -5,6 +5,4 @@ import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-trait CatsIOSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers with ScalaCheckDrivenPropertyChecks {
-
-}
+trait CatsIOSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers with ScalaCheckDrivenPropertyChecks {}

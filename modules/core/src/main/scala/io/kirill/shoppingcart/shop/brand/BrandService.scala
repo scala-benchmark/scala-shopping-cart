@@ -16,8 +16,8 @@ final private class LiveBrandService[F[_]: Sync](
     brandRepository.findAll
 
   override def create(name: Brand.Name): F[Brand.Id] =
-    brandRepository.create(name).handleErrorWith {
-      case UniqueViolation(_) => Sync[F].raiseError(BrandAlreadyExists(name))
+    brandRepository.create(name).handleErrorWith { case UniqueViolation(_) =>
+      Sync[F].raiseError(BrandAlreadyExists(name))
     }
 }
 

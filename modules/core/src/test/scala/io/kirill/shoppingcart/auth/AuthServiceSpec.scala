@@ -23,7 +23,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.create(user.name, User.Password("password"))
+          res     <- service.create(user.name, User.Password("password"))
         } yield res
 
         result.unsafeToFuture().map { r =>
@@ -40,7 +40,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.create(user.name, User.Password("password"))
+          res     <- service.create(user.name, User.Password("password"))
         } yield res
 
         recoverToSucceededIf[UsernameInUse] {
@@ -56,7 +56,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.logout(token, user.name)
+          res     <- service.logout(token, user.name)
         } yield res
 
         result.unsafeToFuture().map { r =>
@@ -98,7 +98,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.login(user.name, User.Password("password"))
+          res     <- service.login(user.name, User.Password("password"))
         } yield res
 
         result.unsafeToFuture().map { r =>
@@ -116,7 +116,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.login(user.name, User.Password("password"))
+          res     <- service.login(user.name, User.Password("password"))
         } yield res
 
         recoverToSucceededIf[InvalidUsernameOrPassword] {
@@ -130,7 +130,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.login(user.name, User.Password("password"))
+          res     <- service.login(user.name, User.Password("password"))
         } yield res
 
         recoverToSucceededIf[InvalidUsernameOrPassword] {
@@ -144,7 +144,7 @@ class AuthServiceSpec extends AsyncFreeSpec with Matchers with AsyncMockitoSugar
 
         val result = for {
           service <- AuthService.make(repo, cache, tokenGen, passEncr)
-          res <- service.login(user.name, User.Password("password"))
+          res     <- service.login(user.name, User.Password("password"))
         } yield res
 
         recoverToSucceededIf[InvalidUsernameOrPassword] {

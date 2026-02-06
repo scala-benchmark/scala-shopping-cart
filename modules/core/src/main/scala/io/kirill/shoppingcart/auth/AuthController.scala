@@ -39,14 +39,13 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F]) exte
       }
   }
 
-  private val authedRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
-    case authedReq @ POST -> Root / "auth" / "logout" as user =>
-      withErrorHandling {
-        AuthHeaders.getBearerToken(authedReq.req) match {
-          case Some(token) => authService.logout(token, user.value.name) *> NoContent()
-          case None        => Sync[F].raiseError(AuthTokenNotPresent(user.value.name))
-        }
+  private val authedRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of { case authedReq @ POST -> Root / "auth" / "logout" as user =>
+    withErrorHandling {
+      AuthHeaders.getBearerToken(authedReq.req) match {
+        case Some(token) => authService.logout(token, user.value.name) *> NoContent()
+        case None        => Sync[F].raiseError(AuthTokenNotPresent(user.value.name))
       }
+    }
   }
 
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] =
