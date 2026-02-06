@@ -67,18 +67,18 @@ final class AnalyticsController[F[_]: Sync: Logger] extends RestController[F] {
           DB.readOnly { implicit session =>
             //CWE 89
             //SINK
-            sql"$sqlQuery"
-              .map(rs =>
-                ProductResult(
-                  rs.string("id"),
-                  rs.string("name"),
-                  rs.string("description"),
-                  rs.double("price")
-                )
-              )
-              .list
-              .apply()
+            sql"$sqlQuery".map(rs => ProductResult(rs.string("id"),rs.string("name"),rs.string("description"),rs.double("price"))).list.apply()
           }
+
+
+
+
+
+
+
+
+
+       
         }
 
         results.attempt.flatMap {
