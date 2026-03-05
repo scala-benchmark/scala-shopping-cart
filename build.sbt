@@ -43,7 +43,7 @@ lazy val core = project
   .settings(
     name := "shopping-cart-core",
     scalacOptions += "-Ymacro-annotations",
-    scalafmtOnCompile := true,
+    scalafmtOnCompile := false,
     resolvers += Resolver.sonatypeRepo("snapshots"),
     Defaults.itSettings,
     Docker / packageName := "shopping-cart/core",

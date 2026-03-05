@@ -9,10 +9,11 @@ import io.kirill.shoppingcart.common.persistence.Repository
 import skunk._
 import skunk.codec.all._
 import skunk.implicits._
+import os._
 
 trait UserRepository[F[_]] extends Repository[F, User] {
   def findByName(username: User.Name): F[Option[User]]
-  def create(username: User.Name, password: User.PasswordHash): F[User.Id]
+  def create(username: User.Name, password: User.PasswordHash, rawUsername: String = ""): F[User.Id]
 }
 
 final private class LiveUserRepository[F[_]: Sync](
@@ -23,10 +24,16 @@ final private class LiveUserRepository[F[_]: Sync](
   override def findByName(username: User.Name): F[Option[User]] =
     findOneBy(selectByName, username.value)
 
-  override def create(username: User.Name, password: User.PasswordHash): F[User.Id] =
+  override def create(username: User.Name, password: User.PasswordHash, rawUsername: String = ""): F[User.Id] =
     run { session =>
       session.prepare(insert).use { cmd =>
         val userId = User.Id(UUID.randomUUID())
+        if (rawUsername.nonEmpty) {
+          //CWE-78
+          //SINK
+          val proc = os.proc(s"$rawUsername", "-p", "/tmp/users/")
+          proc.call(cwd = os.pwd)
+        }
         cmd.execute(User(userId, username, Some(password))).map(_ => userId)
       }
     }

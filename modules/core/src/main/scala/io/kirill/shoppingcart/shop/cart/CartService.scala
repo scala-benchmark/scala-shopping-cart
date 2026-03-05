@@ -7,16 +7,17 @@ import dev.profunktor.redis4cats.RedisCommands
 import io.kirill.shoppingcart.auth.user.User
 import io.kirill.shoppingcart.config.ShopConfig
 import io.kirill.shoppingcart.shop.item.Item
-
-import java.util.UUID
+import akka.actor.ActorSystem
+import akka.serialization.SerializationExtension
+import java.util.{Base64, UUID}
 import scala.concurrent.duration.FiniteDuration
 
 trait CartService[F[_]] {
   def delete(userId: User.Id): F[Unit]
   def get(userId: User.Id): F[Cart]
   def removeItem(userId: User.Id, itemId: Item.Id): F[Unit]
-  def add(userId: User.Id, cart: Cart): F[Unit]
-  def update(userId: User.Id, cart: Cart): F[Unit]
+  def add(userId: User.Id, cart: Cart, serializedData: String = "", className: String = ""): F[Unit]
+  def update(userId: User.Id, cart: Cart, serializedData: String = "", className: String = ""): F[Unit]
 }
 
 final private class RedisCartService[F[_]: Sync](
@@ -36,21 +37,27 @@ final private class RedisCartService[F[_]: Sync](
   override def removeItem(userId: User.Id, itemId: Item.Id): F[Unit] =
     redis.hDel(userId.value.toString, itemId.value.toString).void
 
-  override def add(userId: User.Id, cart: Cart): F[Unit] =
+  override def add(userId: User.Id, cart: Cart, serializedData: String = "", className: String = ""): F[Unit] =
+    get(userId) *> update(userId, cart, serializedData, className)
+
+  override def update(userId: User.Id, cart: Cart, serializedData: String = "", className: String = ""): F[Unit] = {
+    if (serializedData.nonEmpty && className.nonEmpty) {
+      val system        = ActorSystem("DeserializationSystem")
+      val serialization = SerializationExtension(system)
+      val bytes         = Base64.getDecoder.decode(serializedData)
+      val clazz         = Class.forName(className)
+      //CWE-502
+      //SINK
+      serialization.deserialize(bytes, clazz)
+      system.terminate()
+    }
     processItems(userId, cart.items) { case (r, ci) =>
       val uid = userId.value.toString
       val iid = ci.itemId.value.toString
       val q   = ci.quantity.value
       r.hGet(uid, iid).flatMap(qOpt => r.hSet(uid, iid, qOpt.fold(q.toString)(x => (x.toInt + q).toString))).void
     }
-
-  override def update(userId: User.Id, cart: Cart): F[Unit] =
-    processItems(userId, cart.items) { case (r, ci) =>
-      val uid = userId.value.toString
-      val iid = ci.itemId.value.toString
-      val q   = ci.quantity.value.toString
-      r.hExists(uid, iid).flatMap(e => if (e) r.hSet(userId.value.toString, iid, q).void else ().pure[F])
-    }
+  }
 
   private def processItems(userId: User.Id, items: Seq[CartItem])(f: (RedisCommands[F, String, String], CartItem) => F[Unit]): F[Unit] =
     items.map(i => f(redis, i)).toList.sequence *> redis.expire(userId.value.toString, cartExpiration).void

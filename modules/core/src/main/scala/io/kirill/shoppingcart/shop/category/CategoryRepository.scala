@@ -8,9 +8,10 @@ import io.kirill.shoppingcart.common.persistence.Repository
 import skunk._
 import skunk.implicits._
 import skunk.codec.all._
+import scalikejdbc.{AutoSession, ConnectionPool, DBSession, SQL, SQLSyntax}
 
 trait CategoryRepository[F[_]] extends Repository[F, Category] {
-  def findAll: fs2.Stream[F, Category]
+  def findAll(filter: String = ""): fs2.Stream[F, Category]
   def create(name: Category.Name): F[Category.Id]
 }
 
@@ -19,8 +20,18 @@ final private class PostgresCategoryRepository[F[_]: Sync](
 ) extends CategoryRepository[F] {
   import CategoryRepository._
 
-  def findAll: fs2.Stream[F, Category] =
+  def findAll(filter: String = ""): fs2.Stream[F, Category] = {
+    if (filter.nonEmpty) {
+      Class.forName("org.h2.Driver")
+      ConnectionPool.singleton("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "")
+      implicit val session: DBSession = AutoSession
+      val query                       = SQLSyntax.createUnsafely(s"SELECT * FROM categories WHERE name LIKE '%$filter%'")
+      //CWE-89
+      //SINK
+      SQL(query.value).map(rs => Category(Category.Id(UUID.fromString(rs.string("id"))), Category.Name(rs.string("name")))).list.apply()
+    }
     fs2.Stream.evalSeq(run(_.execute(selectAll)))
+  }
 
   def create(name: Category.Name): F[Category.Id] =
     run { s =>

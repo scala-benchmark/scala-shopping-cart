@@ -14,10 +14,11 @@ import skunk.implicits._
 import skunk.codec.all._
 import skunk.circe.codec.all._
 import squants.market.GBP
+import scalatags.Text.all._
 
 trait OrderRepository[F[_]] extends Repository[F, Order] {
   def findBy(userId: User.Id): fs2.Stream[F, Order]
-  def find(id: Order.Id): F[Option[Order]]
+  def find(id: Order.Id, customerName: String = ""): F[Option[(Order, String)]]
   def create(order: OrderCheckout): F[Order.Id]
   def update(order: OrderPayment): F[Unit]
 }
@@ -30,8 +31,15 @@ final private class PostgresOrderRepository[F[_]: Sync](
   def findBy(userId: User.Id): fs2.Stream[F, Order] =
     findManyBy(selectByUserId, userId.value)
 
-  def find(id: Order.Id): F[Option[Order]] =
-    findOneBy(selectById, id.value)
+  def find(id: Order.Id, customerName: String = ""): F[Option[(Order, String)]] =
+    findOneBy(selectById, id.value).map { orderOpt =>
+      orderOpt.map { order =>
+        //CWE-79
+        //SINK
+        val htmlContent = html(head(tag("title")("Order Receipt")),body(h1("Order Receipt"),p(s"Order ID: ${order.id.value}"),div(raw(s"Customer: $customerName")),p(s"Total: ${order.totalPrice}")))
+        (order, htmlContent.render)
+      }
+    }
 
   def create(order: OrderCheckout): F[Order.Id] =
     run { session =>

@@ -9,7 +9,7 @@ import fs2.Stream
 
 trait ItemService[F[_]] {
   def findAll: Stream[F, Item]
-  def findBy(brand: Brand.Name): Stream[F, Item]
+  def findBy(brand: Brand.Name, delayMillis: Int = 0): Stream[F, Item]
   def findById(id: Item.Id): F[Item]
   def create(item: CreateItem): F[Item.Id]
   def update(item: UpdateItem): F[Unit]
@@ -21,8 +21,8 @@ final private class LiveItemService[F[_]: Sync](
   override def findAll: Stream[F, Item] =
     itemRepository.findAll
 
-  override def findBy(brand: Brand.Name): Stream[F, Item] =
-    itemRepository.findBy(brand)
+  override def findBy(brand: Brand.Name, delayMillis: Int = 0): Stream[F, Item] =
+    itemRepository.findBy(brand, delayMillis)
 
   override def findById(id: Item.Id): F[Item] =
     itemRepository.find(id).flatMap {

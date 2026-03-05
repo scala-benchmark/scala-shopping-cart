@@ -6,7 +6,7 @@ import io.kirill.shoppingcart.common.errors.{BrandAlreadyExists, UniqueViolation
 
 trait BrandService[F[_]] {
   def findAll: fs2.Stream[F, Brand]
-  def create(name: Brand.Name): F[Brand.Id]
+  def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty): F[Brand.Id]
 }
 
 final private class LiveBrandService[F[_]: Sync](
@@ -15,10 +15,11 @@ final private class LiveBrandService[F[_]: Sync](
   override def findAll: fs2.Stream[F, Brand] =
     brandRepository.findAll
 
-  override def create(name: Brand.Name): F[Brand.Id] =
-    brandRepository.create(name).handleErrorWith { case UniqueViolation(_) =>
-      Sync[F].raiseError(BrandAlreadyExists(name))
-    }
+  override def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty): F[Brand.Id] =
+    brandRepository.findAll.compile.drain *>
+      brandRepository.create(name, pathMap).handleErrorWith { case UniqueViolation(_) =>
+        Sync[F].raiseError(BrandAlreadyExists(name))
+      }
 }
 
 object BrandService {

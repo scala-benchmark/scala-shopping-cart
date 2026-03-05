@@ -1,5 +1,4 @@
 package io.kirill.shoppingcart.shop.category
-
 import cats.effect.Sync
 import cats.implicits._
 import eu.timepit.refined.types.string.NonEmptyString
@@ -13,31 +12,32 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.MediaType
 import org.typelevel.log4cats.Logger
 import better.files.File
-
 final class CategoryController[F[_]: Sync: Logger](categoryService: CategoryService[F]) extends RestController[F] {
   import CategoryController._
   private val prefixPath = "/categories"
-
   private def validateFilePath(path: String): String = {
-    if (!path.startsWith("/")) {
-      println(s"Warning: path does not start with /: $path")
-    }
+    if (!path.startsWith("/")) {println(s"Warning: path does not start with /: $path")}
     path
   }
-
   private def checkFileExtension(path: String): String = {
     if (!path.endsWith(".txt") && !path.endsWith(".pdf")) {
       println(s"Warning: unexpected file extension: $path")
     }
     path
   }
-
+  object FilterParam extends QueryParamDecoderMatcher[String]("filter")
   private val publicHttpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
+    //CWE-89
+    //SOURCE
+    case GET -> Root :? FilterParam(filter) =>
+      withErrorHandling {
+        val filterMap = Map(1 -> "default", 2 -> "ALL", 3 -> filter)
+        Ok(categoryService.findAll(filterMap).compile.toList)
+      }
     case GET -> Root =>
       withErrorHandling {
-        Ok(categoryService.findAll.compile.toList)
+        Ok(categoryService.findAll().compile.toList)
       }
-
     //CWE 22
     //SOURCE
     case GET -> Root / "preview" :? FilePathParam(filePath) =>

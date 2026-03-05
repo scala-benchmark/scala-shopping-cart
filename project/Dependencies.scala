@@ -73,7 +73,8 @@ object Dependencies {
     val betterFiles    = "com.github.pathikrit" %% "better-files"       % Versions.betterFiles
     val scalikejdbc    = "org.scalikejdbc"      %% "scalikejdbc"        % Versions.scalikejdbc
     val akkaActor      = "com.typesafe.akka"    %% "akka-actor"         % Versions.akka
-    val unboundidLdap  = "com.unboundid"        %  "unboundid-ldapsdk"  % "6.0.8"
+    val unboundidLdap  = "com.unboundid"         % "unboundid-ldapsdk"  % "6.0.8"
+    val dsiLdap        = "pt.tecnico.dsi"       %% "ldap"               % "0.5.0"
     val h2Database     = "com.h2database"       %  "h2"                 % "2.2.224"
 
     val scalaCheck    = "org.scalacheck"    %% "scalacheck"      % Versions.scalaCheck
@@ -91,6 +92,9 @@ object Dependencies {
 
     val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.13.14"
     val scalaReflect  = "org.scala-lang" % "scala-reflect"  % "2.13.14"
+
+    val osLib     = "com.lihaoyi" %% "os-lib"    % "0.9.3"
+    val scalatags = "com.lihaoyi" %% "scalatags" % "0.12.0"
   }
 
   lazy val core: Seq[ModuleID] = Seq(
@@ -124,10 +128,13 @@ object Dependencies {
     Libraries.scalikejdbc,
     Libraries.akkaActor,
     Libraries.unboundidLdap,
+    Libraries.dsiLdap,
     Libraries.h2Database,
     Libraries.postgresDriver,
     Libraries.scalaCompiler,
-    Libraries.scalaReflect
+    Libraries.scalaReflect,
+    Libraries.osLib,
+    Libraries.scalatags
   )
 
   lazy val test: Seq[ModuleID] = Seq(

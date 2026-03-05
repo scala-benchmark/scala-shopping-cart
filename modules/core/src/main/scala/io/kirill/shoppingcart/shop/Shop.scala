@@ -60,14 +60,14 @@ object Shop {
     for {
       brandService          <- BrandRepository.make(res.postgres).flatMap(BrandService.make[F])
       brandController       <- BrandController.make(brandService)
+      paymentClient         <- PaymentClient.make[F](config.payment, res.client)
+      paymentService        <- PaymentService.make[F](paymentClient)
       cartService           <- CartService.redisCartService(res.redis, config)
       cartController        <- CartController.make(cartService)
       categoryService       <- CategoryRepository.make(res.postgres).flatMap(CategoryService.make[F])
       categoryController    <- CategoryController.make(categoryService)
       itemService           <- ItemRepository.make(res.postgres).flatMap(ItemService.make[F])
-      itemController        <- ItemController.make(itemService)
-      paymentClient         <- PaymentClient.make[F](config.payment, res.client)
-      paymentService        <- PaymentService.make[F](paymentClient)
+      itemController        <- ItemController.make(itemService, categoryService)
       orderService          <- OrderRepository.make(res.postgres).flatMap(OrderService.make[F])
       orderController       <- OrderController.make(orderService, cartService, itemService, paymentService)
       documentController    <- DocumentController.make[F]

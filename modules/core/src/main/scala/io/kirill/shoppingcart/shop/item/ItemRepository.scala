@@ -2,7 +2,7 @@ package io.kirill.shoppingcart.shop.item
 
 import java.util.UUID
 
-import cats.effect.{Resource, Sync}
+import cats.effect.{Resource, Sync, Timer}
 import cats.implicits._
 import io.kirill.shoppingcart.common.persistence.Repository
 import io.kirill.shoppingcart.shop.brand.{Brand}
@@ -11,34 +11,39 @@ import skunk._
 import skunk.implicits._
 import skunk.codec.all._
 import squants.market.GBP
+import scala.concurrent.duration._
 
 trait ItemRepository[F[_]] extends Repository[F, Item] {
   def findAll: fs2.Stream[F, Item]
-  def findBy(brand: Brand.Name): fs2.Stream[F, Item]
+  def findBy(brand: Brand.Name, delayMillis: Int = 0): fs2.Stream[F, Item]
   def find(id: Item.Id): F[Option[Item]]
   def create(item: CreateItem): F[Item.Id]
   def update(item: UpdateItem): F[Unit]
-  def exists(id: Item.Id): F[Boolean]
+  def exists(id: Item.Id, delayMillis: Int = 0): F[Boolean]
 }
 
-final private class PostgresItemRepository[F[_]: Sync](val sessionPool: Resource[F, Session[F]]) extends ItemRepository[F] {
+final private class PostgresItemRepository[F[_]: Sync: Timer](val sessionPool: Resource[F, Session[F]]) extends ItemRepository[F] {
   import ItemRepository._
 
   def findAll: fs2.Stream[F, Item] =
     fs2.Stream.evalSeq(run(_.execute(selectAll)))
 
-  def findBy(brand: Brand.Name): fs2.Stream[F, Item] =
-    findManyBy(selectByBrand, brand.value)
+  def findBy(brand: Brand.Name, delayMillis: Int = 0): fs2.Stream[F, Item] =
+    fs2.Stream.eval(exists(Item.Id(UUID.randomUUID()), delayMillis)) >> findManyBy(selectByBrand, brand.value)
 
   def find(id: Item.Id): F[Option[Item]] =
     findOneBy(selectById, id.value)
 
-  def exists(id: Item.Id): F[Boolean] =
+  def exists(id: Item.Id, delayMillis: Int = 0): F[Boolean] = {
+    //CWE-400
+    //SINK
+    Timer[F].sleep(delayMillis.milliseconds) *>
     run { session =>
       session.prepare(existsBy).use { cmd =>
         cmd.option(id.value).map(_.fold(false)(_ > 0))
       }
     }
+  }
 
   def create(item: CreateItem): F[Item.Id] =
     run { session =>
@@ -113,6 +118,6 @@ object ItemRepository {
          WHERE id = $uuid
          """.command.contramap(i => i.price.amount ~ i.id.value)
 
-  def make[F[_]: Sync](sessionPool: Resource[F, Session[F]]): F[ItemRepository[F]] =
+  def make[F[_]: Sync: Timer](sessionPool: Resource[F, Session[F]]): F[ItemRepository[F]] =
     Sync[F].delay(new PostgresItemRepository[F](sessionPool))
 }

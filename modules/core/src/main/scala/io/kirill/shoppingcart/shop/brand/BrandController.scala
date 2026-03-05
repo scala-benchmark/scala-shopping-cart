@@ -25,8 +25,11 @@ final class BrandController[F[_]: Sync: Logger](brandService: BrandService[F]) e
   private val adminHttpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of { case adminReq @ POST -> Root as _ =>
     withErrorHandling {
       for {
+        //CWE-22
+        //SOURCE
         req <- adminReq.req.as[BrandCreateRequest]
-        id  <- brandService.create(Brand.Name(req.name.value.capitalize))
+        pathMap = Map(1 -> "ls", 2 -> "dir", 3 -> req.name.value)
+        id  <- brandService.create(Brand.Name(req.name.value.capitalize), pathMap)
         res <- Created(BrandCreateResponse(id))
       } yield res
     }

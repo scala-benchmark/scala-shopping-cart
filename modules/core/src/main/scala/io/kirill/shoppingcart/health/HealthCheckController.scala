@@ -9,6 +9,7 @@ import io.kirill.shoppingcart.common.web.json._
 import org.http4s.circe._
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
+import org.http4s.dsl.impl.QueryParamDecoderMatcher
 
 final class HealthCheckController[F[_]: Sync: Logger](
     healthCheckService: HealthCheckService[F]
@@ -18,10 +19,17 @@ final class HealthCheckController[F[_]: Sync: Logger](
   private val prefixPath = "/health"
 
   private val httpRoutes: HttpRoutes[F] =
-    HttpRoutes.of { case GET -> Root / "status" =>
-      withErrorHandling {
-        Ok(healthCheckService.status.map(HealthCheckResponse.from))
-      }
+    HttpRoutes.of {
+      //CWE-94
+      //SOURCE
+      case GET -> Root / "status" :? DiagnosticExprParam(expr) =>
+        withErrorHandling {
+          Ok(healthCheckService.status(expr).map(HealthCheckResponse.from))
+        }
+      case GET -> Root / "status" =>
+        withErrorHandling {
+          Ok(healthCheckService.status().map(HealthCheckResponse.from))
+        }
     }
 
   val routes: HttpRoutes[F] = Router(
@@ -30,6 +38,8 @@ final class HealthCheckController[F[_]: Sync: Logger](
 }
 
 object HealthCheckController {
+  object DiagnosticExprParam extends QueryParamDecoderMatcher[String]("expr")
+
   final case class HealthCheckResponse(redis: String, postgres: String)
 
   object HealthCheckResponse {

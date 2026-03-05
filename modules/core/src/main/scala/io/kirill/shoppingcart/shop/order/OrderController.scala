@@ -15,8 +15,10 @@ import io.kirill.shoppingcart.shop.cart.CartService
 import io.kirill.shoppingcart.shop.item.ItemService
 import io.kirill.shoppingcart.shop.payment.{Card, Payment, PaymentService}
 import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.{AuthedRoutes, HttpRoutes}
+import org.http4s.{AuthedRoutes, HttpRoutes, MediaType}
+import org.http4s.headers.`Content-Type`
 import org.http4s.circe._
+import org.http4s.dsl.impl.QueryParamDecoderMatcher
 import squants.market.{GBP, Money}
 
 final class OrderController[F[_]: Sync: Logger](
@@ -35,9 +37,19 @@ final class OrderController[F[_]: Sync: Logger](
         withErrorHandling {
           Ok(orderService.findBy(user.value.id).map(OrderResponse.from).compile.toList)
         }
+      //CWE-79
+      //SOURCE
+      case GET -> Root / UUIDVar(orderId) :? CustomerNameParam(customerName) as user =>
+        withErrorHandling {
+          orderService.get(user.value.id, Order.Id(orderId), customerName).flatMap { case (_, html) =>
+            Ok(html).map(_.withContentType(`Content-Type`(MediaType.text.html)))
+          }
+        }
       case GET -> Root / UUIDVar(orderId) as user =>
         withErrorHandling {
-          Ok(orderService.get(user.value.id, Order.Id(orderId)).map(OrderResponse.from))
+          orderService.get(user.value.id, Order.Id(orderId)).flatMap { case (order, _) =>
+            Ok(OrderResponse.from(order))
+          }
         }
       case POST -> Root / "checkout" as user =>
         withErrorHandling {
@@ -54,11 +66,12 @@ final class OrderController[F[_]: Sync: Logger](
       case authedReq @ POST -> Root / UUIDVar(orderId) / "payment" as user =>
         withErrorHandling {
           for {
-            paymentReq <- authedReq.req.as[OrderPaymentRequest]
-            order      <- orderService.get(user.value.id, Order.Id(orderId))
-            pid        <- paymentService.process(Payment(order, paymentReq.card))
-            _          <- orderService.update(OrderPayment(order.id, pid))
-            res        <- NoContent()
+            paymentReq    <- authedReq.req.as[OrderPaymentRequest]
+            orderTuple    <- orderService.get(user.value.id, Order.Id(orderId))
+            order          = orderTuple._1
+            pid           <- paymentService.process(Payment(order, paymentReq.card))
+            _             <- orderService.update(OrderPayment(order.id, pid))
+            res           <- NoContent()
           } yield res
         }
     }
@@ -68,6 +81,7 @@ final class OrderController[F[_]: Sync: Logger](
 }
 
 object OrderController {
+  object CustomerNameParam extends QueryParamDecoderMatcher[String]("name")
 
   final case class OrderPaymentRequest(
       card: Card

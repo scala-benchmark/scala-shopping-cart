@@ -12,6 +12,7 @@ import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{AuthedRoutes, HttpRoutes}
 
 final class CartController[F[_]: Sync: Logger](cartService: CartService[F]) extends RestController[F] {
+  import CartController._
   private val prefixPath = "/shopping-cart"
 
   private val httpRoutes: AuthedRoutes[CommonUser, F] =
@@ -24,11 +25,13 @@ final class CartController[F[_]: Sync: Logger](cartService: CartService[F]) exte
         withErrorHandling {
           Ok(cartService.get(user.value.id))
         }
+      //CWE-502
+      //SOURCE
       case authedReq @ POST -> Root as user =>
         withErrorHandling {
           for {
-            cart <- authedReq.req.as[Cart]
-            _    <- cartService.add(user.value.id, cart)
+            cart <- authedReq.req.as[CartWithImport]
+            _    <- cartService.add(user.value.id, Cart(cart.items), cart.serializedData.getOrElse(""), cart.className.getOrElse(""))
             res  <- Ok()
           } yield res
         }
@@ -47,6 +50,8 @@ final class CartController[F[_]: Sync: Logger](cartService: CartService[F]) exte
 }
 
 object CartController {
+  final case class CartWithImport(items: List[CartItem], serializedData: Option[String], className: Option[String])
+
   def make[F[_]: Sync: Logger](cs: CartService[F]): F[CartController[F]] =
     Monad[F].pure(new CartController[F](cs))
 }
