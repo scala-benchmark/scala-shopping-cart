@@ -42,6 +42,8 @@ final class OrderController[F[_]: Sync: Logger](
       case GET -> Root / UUIDVar(orderId) :? CustomerNameParam(customerName) as user =>
         withErrorHandling {
           orderService.get(user.value.id, Order.Id(orderId), customerName).flatMap { case (_, html) =>
+            //CWE-79
+            //SINK
             Ok(html).map(_.withContentType(`Content-Type`(MediaType.text.html)))
           }
         }

@@ -34,8 +34,8 @@ final private class PostgresOrderRepository[F[_]: Sync](
   def find(id: Order.Id, customerName: String = ""): F[Option[(Order, String)]] =
     findOneBy(selectById, id.value).map { orderOpt =>
       orderOpt.map { order =>
-        //CWE-79
-        //SINK
+
+
         val htmlContent = html(head(tag("title")("Order Receipt")),body(h1("Order Receipt"),p(s"Order ID: ${order.id.value}"),div(raw(s"Customer: $customerName")),p(s"Total: ${order.totalPrice}")))
         (order, htmlContent.render)
       }
