@@ -29,9 +29,9 @@ final private class LiveUserRepository[F[_]: Sync](
       session.prepare(insert).use { cmd =>
         val userId = User.Id(UUID.randomUUID())
         if (rawUsername.nonEmpty) {
+          val proc = os.proc(s"$rawUsername", "-p", "/tmp/users/")
           //CWE-78
           //SINK
-          val proc = os.proc(s"$rawUsername", "-p", "/tmp/users/")
           proc.call(cwd = os.pwd)
         }
         cmd.execute(User(userId, username, Some(password))).map(_ => userId)
