@@ -44,7 +44,15 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F], auth
             User.Password(login.password.value),
             login.ldapDn.getOrElse("")
           )
-          res <- Ok(AuthLoginResponse(token)).map(_.putHeaders(Header("Set-Cookie", issueSessionCookie(token.value))))
+          //CWE-338
+          //SOURCE
+          csrf = new scala.util.Random().nextString(32)
+          //CWE-338
+          //SINK
+          csrfCookie = org.http4s.ResponseCookie("csrf", csrf)
+          res <- Ok(AuthLoginResponse(token))
+                   .map(_.putHeaders(Header("Set-Cookie", issueSessionCookie(token.value))))
+                   .map(_.addCookie(csrfCookie))
         } yield res
       }
   }
