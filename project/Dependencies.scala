@@ -71,6 +71,7 @@ object Dependencies {
     val squants  = "org.typelevel" %% "squants"         % Versions.squants
 
     val commonsLang3   = "org.apache.commons"    % "commons-lang3"      % "3.14.0"
+    val auth0Jwt       = "com.auth0"             % "java-jwt"           % "4.4.0"
     val betterFiles    = "com.github.pathikrit" %% "better-files"       % Versions.betterFiles
     val scalikejdbc    = "org.scalikejdbc"      %% "scalikejdbc"        % Versions.scalikejdbc
     val akkaActor      = "com.typesafe.akka"    %% "akka-actor"         % Versions.akka
@@ -129,6 +130,7 @@ object Dependencies {
     Libraries.skunkCirce,
     Libraries.betterFiles,
     Libraries.commonsLang3,
+    Libraries.auth0Jwt,
     Libraries.scalikejdbc,
     Libraries.akkaActor,
     Libraries.akkaHttp,

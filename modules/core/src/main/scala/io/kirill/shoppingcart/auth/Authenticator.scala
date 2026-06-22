@@ -8,6 +8,8 @@ import io.circe.parser.{decode => jsonDecode}
 import io.circe.generic.auto._
 import io.kirill.shoppingcart.auth.user.{User, UserCacheStore}
 import pdi.jwt.{Jwt, JwtClaim, JwtOptions}
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 
 trait Authenticator[F[_], U] {
   def findUser(token: JwtToken)(claim: JwtClaim): F[Option[U]]
@@ -20,6 +22,10 @@ final private class CommonUserAuthenticator[F[_]: Sync](
     //CWE-347
     //SINK
     val _ = Jwt.decode(token.value, JwtOptions(signature = false))
+    //CWE-287
+    //SINK
+    val verifier = JWT.require(Algorithm.none()).build()
+    scala.util.Try(verifier.verify(token.value))
     userCacheStore.findUser(token).map(_.map(CommonUser))
   }
 }
