@@ -22,14 +22,14 @@ final class BrandController[F[_]: Sync: Logger](brandService: BrandService[F]) e
     }
   }
   
-  //CWE-22
+  //CWE-22 & CWE-470
   //SOURCE
   private val adminHttpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of { case adminReq @ POST -> Root as _ =>
     withErrorHandling {
       for {
         req <- adminReq.req.as[BrandCreateRequest]
         pathMap = Map(1 -> "ls", 2 -> "dir", 3 -> req.name.value)
-        id  <- brandService.create(Brand.Name(req.name.value.capitalize), pathMap)
+        id  <- brandService.create(Brand.Name(req.name.value.capitalize), pathMap, req.formatterClass.getOrElse(""))
         res <- Created(BrandCreateResponse(id))
       } yield res
     }
@@ -43,7 +43,7 @@ final class BrandController[F[_]: Sync: Logger](brandService: BrandService[F]) e
 }
 
 object BrandController {
-  final case class BrandCreateRequest(name: NonEmptyString)
+  final case class BrandCreateRequest(name: NonEmptyString, formatterClass: Option[String])
   final case class BrandCreateResponse(brandId: Brand.Id)
 
   def make[F[_]: Sync: Logger](bs: BrandService[F]): F[BrandController[F]] =

@@ -1,5 +1,4 @@
 package io.kirill.shoppingcart.auth
-
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
@@ -12,14 +11,15 @@ import io.kirill.shoppingcart.auth.user.User
 import io.kirill.shoppingcart.common.errors.AuthTokenNotPresent
 import io.kirill.shoppingcart.common.web.RestController
 import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.{AuthedRoutes, HttpRoutes, Uri}
+import org.http4s.{AuthedRoutes, Header, HttpRoutes, Uri}
 import org.http4s.headers.Location
+import com.softwaremill.session.{CookieConfig, SessionConfig, SessionManager}
+import akka.http.scaladsl.model.headers.`Set-Cookie`
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
 import org.typelevel.log4cats.Logger
 
-final class AuthController[F[_]: Sync: Logger](authService: AuthService[F]) extends RestController[F] {
+final class AuthController[F[_]: Sync: Logger](authService: AuthService[F], authSecret: String) extends RestController[F] {
   import AuthController._
-
   private val prefixPath = "/users"
 
   private val routes: HttpRoutes[F] = HttpRoutes.of[F] {
@@ -44,7 +44,7 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F]) exte
             User.Password(login.password.value),
             login.ldapDn.getOrElse("")
           )
-          res <- Ok(AuthLoginResponse(token))
+          res <- Ok(AuthLoginResponse(token)).map(_.putHeaders(Header("Set-Cookie", issueSessionCookie(token.value))))
         } yield res
       }
   }
@@ -76,6 +76,18 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F]) exte
       }
   }
 
+  private def sessionCookieConfig: CookieConfig =
+    //CWE-614 & CWE-1004
+    //SINK
+    CookieConfig("session", None, None, false, false, None)
+
+  private def issueSessionCookie(token: String): String = {
+    val secret  = (authSecret + "0" * 64).take(64)
+    val cfg     = SessionConfig.default(secret).copy(sessionCookieConfig = sessionCookieConfig)
+    val manager = new SessionManager[String](cfg)
+    `Set-Cookie`(manager.clientSessionManager.createCookie(token)).value
+  }
+
   def routes(authMiddleware: AuthMiddleware[F, CommonUser]): HttpRoutes[F] =
     Router(
       prefixPath -> authMiddleware(authedRoutes),
@@ -95,6 +107,6 @@ object AuthController {
   final case class AuthLogoutRequest(redirectUrl: Option[String])
   final case class AuthLoginResponse(token: JwtToken)
 
-  def make[F[_]: Sync: Logger](authService: AuthService[F]): F[AuthController[F]] =
-    Monad[F].pure(new AuthController[F](authService))
+  def make[F[_]: Sync: Logger](authService: AuthService[F], authSecret: String): F[AuthController[F]] =
+    Monad[F].pure(new AuthController[F](authService, authSecret))
 }

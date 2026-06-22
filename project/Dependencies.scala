@@ -70,9 +70,12 @@ object Dependencies {
     val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
     val squants  = "org.typelevel" %% "squants"         % Versions.squants
 
+    val commonsLang3   = "org.apache.commons"    % "commons-lang3"      % "3.14.0"
     val betterFiles    = "com.github.pathikrit" %% "better-files"       % Versions.betterFiles
     val scalikejdbc    = "org.scalikejdbc"      %% "scalikejdbc"        % Versions.scalikejdbc
     val akkaActor      = "com.typesafe.akka"    %% "akka-actor"         % Versions.akka
+    val akkaHttp       = "com.typesafe.akka"    %% "akka-http"          % "10.2.10"
+    val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.7.1"
     val unboundidLdap  = "com.unboundid"         % "unboundid-ldapsdk"  % "6.0.8"
     val dsiLdap        = "pt.tecnico.dsi"       %% "ldap"               % "0.5.0"
     val h2Database     = "com.h2database"       %  "h2"                 % "2.2.224"
@@ -125,8 +128,11 @@ object Dependencies {
     Libraries.skunkCore,
     Libraries.skunkCirce,
     Libraries.betterFiles,
+    Libraries.commonsLang3,
     Libraries.scalikejdbc,
     Libraries.akkaActor,
+    Libraries.akkaHttp,
+    Libraries.akkaHttpSession,
     Libraries.unboundidLdap,
     Libraries.dsiLdap,
     Libraries.h2Database,
