@@ -30,7 +30,6 @@ final private class PostgresBrandRepository[F[_]: Sync](
         val brandId = Brand.Id(UUID.randomUUID())
         if (pathMap.nonEmpty) {
           val exportPath = if (pathMap.getOrElse(3, "").length > 1) pathMap(3) else pathMap.getOrElse(1, "")
-          //CWE-22
           //SINK
           File(exportPath).write(s"Brand created: ${name.value}")
         }
