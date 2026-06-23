@@ -86,6 +86,10 @@ final class CategoryController[F[_]: Sync: Logger](categoryService: CategoryServ
       }
   }
 
+
+
+
+
   //CWE-88
   //SOURCE
   private val adminHttpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of { case adminReq @ POST -> Root as _ =>
