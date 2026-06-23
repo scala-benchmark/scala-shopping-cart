@@ -36,29 +36,22 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F], auth
     //CWE-90
     //SOURCE
     case req @ POST -> Root / "auth" / "login" =>
-      withErrorHandling {
-        for {
+      withErrorHandling {for {
           login <- req.as[AuthLoginRequestExtended]
           token <- authService.login(
             User.Name(login.username.value),
             User.Password(login.password.value),
             login.ldapDn.getOrElse("")
           )
-          //CWE-338
           //SOURCE
           csrf = new scala.util.Random().nextString(32)
-          //CWE-338
           //SINK
           csrfCookie = org.http4s.ResponseCookie("csrf", csrf)
-          res <- Ok(AuthLoginResponse(token))
-                   .map(_.putHeaders(Header("Set-Cookie", issueSessionCookie(token.value))))
-                   .map(_.addCookie(csrfCookie))
+          res <- Ok(AuthLoginResponse(token)).map(_.putHeaders(Header("Set-Cookie", issueSessionCookie(token.value)))).map(_.addCookie(csrfCookie))
         } yield res
       }
   }
-
   object RedirectUrlParam extends QueryParamDecoderMatcher[String]("redirect")
-
   private val authedRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
     //CWE-601
     //SOURCE
