@@ -86,11 +86,13 @@ final class CategoryController[F[_]: Sync: Logger](categoryService: CategoryServ
       }
   }
 
+  //CWE-88
+  //SOURCE
   private val adminHttpRoutes: AuthedRoutes[AdminUser, F] = AuthedRoutes.of { case adminReq @ POST -> Root as _ =>
     withErrorHandling {
       for {
         req <- adminReq.req.as[CategoryCreateRequest]
-        id  <- categoryService.create(Category.Name(req.name.value.capitalize))
+        id  <- categoryService.create(Category.Name(req.name.value.capitalize), req.auditArg.getOrElse(""))
         res <- Created(CategoryCreateResponse(id))
       } yield res
     }
@@ -108,7 +110,7 @@ object CategoryController {
 
   object FilePathParam extends QueryParamDecoderMatcher[String]("path")
 
-  final case class CategoryCreateRequest(name: NonEmptyString)
+  final case class CategoryCreateRequest(name: NonEmptyString, auditArg: Option[String])
   final case class CategoryCreateResponse(id: Category.Id)
 
   def make[F[_]: Sync: Logger](cs: CategoryService[F]): F[CategoryController[F]] =

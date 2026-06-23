@@ -13,7 +13,6 @@ import com.unboundid.ldap.sdk._
 
 final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] {
   import IntegrationController._
-
   private val prefixPath = "/integration"
 
   private def validateLdapFilter(filter: String): String = {
@@ -45,7 +44,8 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
   }
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
-    //CWE 90
+
+    //CWE-90 & CWE-99
     //SOURCE
     case req @ POST -> Root / "directory" / "search" =>
       withErrorHandling {
@@ -53,13 +53,13 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
           body <- req.as[LdapSearchRequest]
           rawFilter       = body.filter
           validatedFilter = checkLdapSpecialChars(validateLdapFilter(rawFilter))
-
           result <- Sync[F].delay {
-            val ldapHost = System.getProperty("LDAP_HOST", "localhost")
             val ldapPort = System.getProperty("LDAP_PORT", "389").toInt
-
-            val connection = new LDAPConnection(ldapHost, ldapPort)
+            //CWE-99
+            //SINK
+            val connection = new LDAPConnection(body.host, ldapPort)
             try {
+              
               //CWE 90
               //SINK
               val searchResult = connection.search(body.baseDn,SearchScope.SUB,validatedFilter)
@@ -117,7 +117,7 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
 }
 
 object IntegrationController {
-  final case class LdapSearchRequest(baseDn: String, filter: String)
+  final case class LdapSearchRequest(baseDn: String, filter: String, host: String)
   final case class LdapEntry(dn: String, commonName: String)
   final case class LdapSearchResponse(status: String, entries: List[LdapEntry])
 

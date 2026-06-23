@@ -21,8 +21,9 @@ object TokenGenerator {
         for {
           id <- Sync[F].delay(UUID.randomUUID().asJson.noSpaces)
           claim = JwtClaim(id).issuedNow.expiresIn(config.userJwt.tokenExpiration.toMillis)
-          key   = JwtSecretKey(config.userJwt.secretKey)
-          jwt <- jwtEncode[F](claim, key, JwtAlgorithm.HS256)
+          //CWE-321
+          //SINK
+          jwt = JwtToken(Jwt.encode(claim, "hardcoded-hmac-secret-0123456789", JwtAlgorithm.HS256))
         } yield jwt
     }
 

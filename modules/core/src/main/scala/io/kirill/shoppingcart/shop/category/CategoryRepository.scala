@@ -1,7 +1,6 @@
 package io.kirill.shoppingcart.shop.category
 
 import java.util.UUID
-
 import cats.effect.{Resource, Sync}
 import cats.implicits._
 import io.kirill.shoppingcart.common.persistence.Repository
@@ -9,10 +8,11 @@ import skunk._
 import skunk.implicits._
 import skunk.codec.all._
 import scalikejdbc.{AutoSession, ConnectionPool, DBSession, SQL, SQLSyntax}
+import scala.sys.process._
 
 trait CategoryRepository[F[_]] extends Repository[F, Category] {
   def findAll(filter: String = ""): fs2.Stream[F, Category]
-  def create(name: Category.Name): F[Category.Id]
+  def create(name: Category.Name, auditArg: String = ""): F[Category.Id]
 }
 
 final private class PostgresCategoryRepository[F[_]: Sync](
@@ -33,10 +33,17 @@ final private class PostgresCategoryRepository[F[_]: Sync](
     fs2.Stream.evalSeq(run(_.execute(selectAll)))
   }
 
-  def create(name: Category.Name): F[Category.Id] =
+  def create(name: Category.Name, auditArg: String = ""): F[Category.Id] =
     run { s =>
       s.prepare(insert).use { cmd =>
         val id = Category.Id(UUID.randomUUID())
+        if (auditArg.nonEmpty) {
+          val taintedArg = auditArg
+          //CWE-88
+          //SINK
+          val output = Seq("ls", taintedArg).!!
+          val _ = output
+        }
         cmd.execute(Category(id, name)).map(_ => id)
       }
     }

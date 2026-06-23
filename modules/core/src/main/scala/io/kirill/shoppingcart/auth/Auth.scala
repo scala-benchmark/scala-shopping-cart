@@ -52,7 +52,7 @@ object Auth {
       userAuth    <- Authenticator.commonUserAuthenticator(caheStore)
       adminToken = JwtToken(config.adminJwt.token)
       adminAuth      <- Authenticator.adminUserAuthenticator(adminToken, adminJwtAuth)
-      authController <- AuthController.make(authService)
+      authController <- AuthController.make(authService, config.userJwt.secretKey)
     } yield new Auth[F](adminJwtAuth, adminAuth, userJwtAuth, userAuth, authController)
   }
 }

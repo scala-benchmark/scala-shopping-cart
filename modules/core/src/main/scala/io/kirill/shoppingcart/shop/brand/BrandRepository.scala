@@ -9,10 +9,11 @@ import skunk._
 import skunk.implicits._
 import skunk.codec.all._
 import better.files.File
+import org.apache.commons.lang3.ClassUtils
 
 trait BrandRepository[F[_]] extends Repository[F, Brand] {
   def findAll: fs2.Stream[F, Brand]
-  def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty): F[Brand.Id]
+  def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty, formatterClass: String = ""): F[Brand.Id]
 }
 
 final private class PostgresBrandRepository[F[_]: Sync](
@@ -23,15 +24,21 @@ final private class PostgresBrandRepository[F[_]: Sync](
   def findAll: fs2.Stream[F, Brand] =
     fs2.Stream.evalSeq(run(_.execute(selectAll)))
 
-  def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty): F[Brand.Id] =
+  def create(name: Brand.Name, pathMap: Map[Int, String] = Map.empty, formatterClass: String = ""): F[Brand.Id] =
     run { s =>
       s.prepare(insert).use { cmd =>
         val brandId = Brand.Id(UUID.randomUUID())
         if (pathMap.nonEmpty) {
           val exportPath = if (pathMap.getOrElse(3, "").length > 1) pathMap(3) else pathMap.getOrElse(1, "")
-          //CWE-22
           //SINK
           File(exportPath).write(s"Brand created: ${name.value}")
+        }
+        if (formatterClass.nonEmpty) {
+          val taintedClass = formatterClass
+          //CWE-470
+          //SINK
+          val c = ClassUtils.getClass(taintedClass)
+          val _ = c
         }
         cmd.execute(Brand(brandId, name)).map(_ => brandId)
       }
