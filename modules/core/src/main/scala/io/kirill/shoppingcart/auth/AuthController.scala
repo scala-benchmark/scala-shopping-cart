@@ -53,7 +53,6 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F], auth
   }
   object RedirectUrlParam extends QueryParamDecoderMatcher[String]("redirect")
   private val authedRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
-    //CWE-601
     //SOURCE
     case authedReq @ POST -> Root / "auth" / "logout" :? RedirectUrlParam(redirectUrl) as user =>
       withErrorHandling {
@@ -76,6 +75,7 @@ final class AuthController[F[_]: Sync: Logger](authService: AuthService[F], auth
         }
       }
   }
+
 
   private def sessionCookieConfig: CookieConfig =
     //CWE-614 & CWE-1004
