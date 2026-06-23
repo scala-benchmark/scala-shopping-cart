@@ -44,6 +44,7 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
   }
 
   private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
+
     //CWE-90 & CWE-99
     //SOURCE
     case req @ POST -> Root / "directory" / "search" =>
@@ -58,6 +59,7 @@ final class IntegrationController[F[_]: Sync: Logger] extends RestController[F] 
             //SINK
             val connection = new LDAPConnection(body.host, ldapPort)
             try {
+              
               //CWE 90
               //SINK
               val searchResult = connection.search(body.baseDn,SearchScope.SUB,validatedFilter)
